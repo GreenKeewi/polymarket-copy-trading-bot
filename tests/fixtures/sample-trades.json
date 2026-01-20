@@ -1,0 +1,59 @@
+{
+  "trades": [
+    {
+      "id": "trade_001",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_001_will_btc_reach_100k",
+      "outcomeId": "outcome_yes",
+      "side": "BUY",
+      "size": 100,
+      "price": 0.65,
+      "timestamp": "2024-01-20T10:00:00.000Z",
+      "transactionHash": "0xabc123"
+    },
+    {
+      "id": "trade_002",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_002_will_eth_reach_5k",
+      "outcomeId": "outcome_yes",
+      "side": "BUY",
+      "size": 200,
+      "price": 0.55,
+      "timestamp": "2024-01-20T10:05:00.000Z",
+      "transactionHash": "0xdef456"
+    },
+    {
+      "id": "trade_003",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_001_will_btc_reach_100k",
+      "outcomeId": "outcome_yes",
+      "side": "SELL",
+      "size": 50,
+      "price": 0.65,
+      "timestamp": "2024-01-20T10:10:00.000Z",
+      "transactionHash": "0xghi789"
+    },
+    {
+      "id": "trade_004",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_003_will_trump_win",
+      "outcomeId": "outcome_no",
+      "side": "BUY",
+      "size": 150,
+      "price": 0.45,
+      "timestamp": "2024-01-20T10:15:00.000Z",
+      "transactionHash": "0xjkl012"
+    },
+    {
+      "id": "trade_005",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_002_will_eth_reach_5k",
+      "outcomeId": "outcome_yes",
+      "side": "SELL",
+      "size": 100,
+      "price": 0.55,
+      "timestamp": "2024-01-20T10:20:00.000Z",
+      "transactionHash": "0xmno345"
+    }
+  ]
+}

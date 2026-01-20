@@ -1,0 +1,47 @@
+{
+  "name": "polymarket-copy-trading-bot",
+  "version": "1.0.0",
+  "description": "Production-grade Polymarket copy-trading bot with mandatory testing mode",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:test": "TEST_MODE=true node dist/index.js --test",
+    "test-bot": "npm run build && TEST_MODE=true node dist/scripts/testBot.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "dev": "ts-node src/index.ts",
+    "dev:test": "TEST_MODE=true ts-node src/index.ts --test",
+    "replay": "TEST_MODE=true ts-node src/replay/TradeReplayRunner.ts"
+  },
+  "keywords": [
+    "polymarket",
+    "trading",
+    "bot",
+    "copy-trading",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "20.10.0",
+    "chalk": "4.1.2",
+    "cli-table3": "0.6.3",
+    "dotenv": "16.3.1",
+    "ethers": "6.9.0",
+    "mongodb": "6.3.0",
+    "winston": "3.11.0",
+    "yargs": "17.7.2"
+  },
+  "devDependencies": {
+    "@types/yargs": "17.0.32",
+    "@typescript-eslint/eslint-plugin": "6.13.0",
+    "@typescript-eslint/parser": "6.13.0",
+    "eslint": "8.54.0",
+    "ts-node": "10.9.1",
+    "typescript": "5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
