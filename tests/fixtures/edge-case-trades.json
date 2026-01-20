@@ -1,0 +1,64 @@
+{
+  "trades": [
+    {
+      "id": "edge_001",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_edge_rapid_burst",
+      "outcomeId": "outcome_yes",
+      "side": "BUY",
+      "size": 50,
+      "price": 0.50,
+      "timestamp": "2024-01-20T11:00:00.000Z"
+    },
+    {
+      "id": "edge_002",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_edge_rapid_burst",
+      "outcomeId": "outcome_yes",
+      "side": "BUY",
+      "size": 50,
+      "price": 0.51,
+      "timestamp": "2024-01-20T11:00:00.100Z"
+    },
+    {
+      "id": "edge_003",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_edge_rapid_burst",
+      "outcomeId": "outcome_yes",
+      "side": "BUY",
+      "size": 50,
+      "price": 0.52,
+      "timestamp": "2024-01-20T11:00:00.200Z"
+    },
+    {
+      "id": "edge_004_partial_sell",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_edge_rapid_burst",
+      "outcomeId": "outcome_yes",
+      "side": "SELL",
+      "size": 75,
+      "price": 0.55,
+      "timestamp": "2024-01-20T11:00:05.000Z"
+    },
+    {
+      "id": "edge_005_price_jump",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_edge_price_jump",
+      "outcomeId": "outcome_yes",
+      "side": "BUY",
+      "size": 100,
+      "price": 0.30,
+      "timestamp": "2024-01-20T11:01:00.000Z"
+    },
+    {
+      "id": "edge_006_insufficient",
+      "traderAddress": "0x1234567890123456789012345678901234567890",
+      "marketId": "market_edge_insufficient",
+      "outcomeId": "outcome_yes",
+      "side": "BUY",
+      "size": 10000,
+      "price": 0.50,
+      "timestamp": "2024-01-20T11:02:00.000Z"
+    }
+  ]
+}
