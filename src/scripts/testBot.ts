@@ -1,13 +1,16 @@
 import * as path from 'path';
 import chalk from 'chalk';
 import { config } from '../config/ConfigManager';
-import { database } from '../database/DatabaseManager';
+import { DatabaseFactory, IDatabaseAdapter } from '../database/DatabaseFactory';
 import { monitorService } from '../services/monitor/MonitorService';
 import { executorService } from '../services/executor/ExecutorService';
 import { ExecutorFactory } from '../services/executor/ExecutorFactory';
 import { positionManager } from '../services/position/PositionManager';
 import { TradeReplayRunner } from '../replay/TradeReplayRunner';
 import { MockExecutor } from '../simulators/MockExecutor';
+
+// Database adapter used throughout the test
+let database: IDatabaseAdapter;
 
 async function runTestBot(): Promise<void> {
   console.log(chalk.bold.cyan('\n═══════════════════════════════════════════════════'));
@@ -25,7 +28,12 @@ async function runTestBot(): Promise<void> {
     console.log(chalk.green('✅ TEST_MODE confirmed\n'));
 
     console.log(chalk.blue('📊 Connecting to database...'));
-    await database.connect();
+    
+    // Use DatabaseFactory - automatically selects in-memory DB for test mode
+    database = await DatabaseFactory.getConnectedDatabase();
+    
+    const dbType = DatabaseFactory.isUsingInMemoryDatabase() ? 'In-Memory' : 'MongoDB';
+    console.log(chalk.green(`✅ Connected to ${dbType} database`));
     
     console.log(chalk.blue('🧹 Clearing previous test data...'));
     await database.clearAllData();
@@ -58,6 +66,14 @@ async function runTestBot(): Promise<void> {
     const trades = replayRunner.getTrades();
     console.log(chalk.green(`✅ Loaded ${trades.length} trades\n`));
 
+    // Initialize price simulator with trade prices for realistic slippage testing
+    console.log(chalk.blue('💰 Initializing price simulator with trade prices...'));
+    const priceSimulator = mockExecutor.getPriceSimulator();
+    for (const trade of trades) {
+      priceSimulator.setPrice(trade.marketId, trade.outcomeId, trade.price);
+    }
+    console.log(chalk.green('✅ Price simulator initialized\n'));
+
     console.log(chalk.blue('▶️  Replaying trades through pipeline...\n'));
     await replayRunner.replay({ speed: 0 });
     
@@ -85,7 +101,7 @@ async function runTestBot(): Promise<void> {
   } finally {
     await monitorService.stop();
     await ExecutorFactory.shutdown();
-    await database.disconnect();
+    await DatabaseFactory.disconnect();
   }
 }
 

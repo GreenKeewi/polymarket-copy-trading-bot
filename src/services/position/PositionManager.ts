@@ -1,5 +1,5 @@
 import { Position, OrderSide } from '../../types';
-import { database } from '../../database/DatabaseManager';
+import { DatabaseFactory, IDatabaseAdapter } from '../../database/DatabaseFactory';
 import { logger } from '../../utils/logger';
 
 /**
@@ -13,6 +13,7 @@ import { logger } from '../../utils/logger';
  */
 export class PositionManager {
   private static instance: PositionManager;
+  private database: IDatabaseAdapter | null = null;
 
   private constructor() {}
 
@@ -24,17 +25,29 @@ export class PositionManager {
   }
 
   /**
+   * Get the database adapter (lazy initialization)
+   */
+  private async getDatabase(): Promise<IDatabaseAdapter> {
+    if (!this.database) {
+      this.database = await DatabaseFactory.getConnectedDatabase();
+    }
+    return this.database;
+  }
+
+  /**
    * Get current position for market/outcome
    */
   async getPosition(marketId: string, outcomeId: string): Promise<Position | null> {
-    return await database.getPosition(marketId, outcomeId);
+    const db = await this.getDatabase();
+    return await db.getPosition(marketId, outcomeId);
   }
 
   /**
    * Get all positions
    */
   async getAllPositions(): Promise<Position[]> {
-    return await database.getAllPositions();
+    const db = await this.getDatabase();
+    return await db.getAllPositions();
   }
 
   /**
@@ -110,7 +123,8 @@ export class PositionManager {
       (newPosition.currentPrice - newPosition.averagePrice) * newPosition.quantity;
 
     // Save to database
-    await database.savePosition(newPosition);
+    const db = await this.getDatabase();
+    await db.savePosition(newPosition);
 
     logger.info(`Position updated: ${positionId}`, {
       quantity: newPosition.quantity,
@@ -136,7 +150,8 @@ export class PositionManager {
     position.unrealizedPnL = (currentPrice - position.averagePrice) * position.quantity;
     position.lastUpdated = new Date();
 
-    await database.savePosition(position);
+    const db = await this.getDatabase();
+    await db.savePosition(position);
   }
 
   /**

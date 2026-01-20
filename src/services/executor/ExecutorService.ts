@@ -2,7 +2,7 @@ import { Trade, ExecutionOrder, OrderStatus, TrackedTrader } from '../../types';
 import { ExecutorFactory } from './ExecutorFactory';
 import { riskEngine } from '../risk/RiskEngine';
 import { positionManager } from '../position/PositionManager';
-import { database } from '../../database/DatabaseManager';
+import { DatabaseFactory, IDatabaseAdapter } from '../../database/DatabaseFactory';
 import { config } from '../../config/ConfigManager';
 import { logger } from '../../utils/logger';
 
@@ -19,6 +19,7 @@ import { logger } from '../../utils/logger';
  */
 export class ExecutorService {
   private static instance: ExecutorService;
+  private database: IDatabaseAdapter | null = null;
 
   private constructor() {}
 
@@ -30,10 +31,22 @@ export class ExecutorService {
   }
 
   /**
+   * Get the database adapter (lazy initialization)
+   */
+  private async getDatabase(): Promise<IDatabaseAdapter> {
+    if (!this.database) {
+      this.database = await DatabaseFactory.getConnectedDatabase();
+    }
+    return this.database;
+  }
+
+  /**
    * Process a detected trade
    */
   async processTrade(trade: Trade, traderConfig: TrackedTrader): Promise<void> {
     try {
+      const db = await this.getDatabase();
+      
       logger.info(`Processing trade: ${trade.id}`, {
         side: trade.side,
         size: trade.size,
@@ -42,7 +55,7 @@ export class ExecutorService {
       });
 
       // Check if already processed
-      const isProcessed = await database.isTradeProcessed(trade.id);
+      const isProcessed = await db.isTradeProcessed(trade.id);
       if (isProcessed) {
         logger.warn(`Trade ${trade.id} already processed, skipping`);
         return;
@@ -78,14 +91,14 @@ export class ExecutorService {
       };
 
       // Save order
-      await database.saveExecutionOrder(order);
+      await db.saveExecutionOrder(order);
 
       // Validate against risk rules
       const validation = await riskEngine.validateOrder(order);
       if (!validation.valid) {
         logger.warn(`Order ${order.id} rejected by risk engine: ${validation.reason}`);
         
-        await database.updateExecutionOrder(order.id, {
+        await db.updateExecutionOrder(order.id, {
           status: OrderStatus.REJECTED,
           rejectionReason: validation.reason,
         });
@@ -106,6 +119,7 @@ export class ExecutorService {
    */
   private async executeOrder(order: ExecutionOrder): Promise<void> {
     try {
+      const db = await this.getDatabase();
       const executor = await ExecutorFactory.getExecutor();
       
       logger.info(`Executing order ${order.id}: ${order.side} ${order.requestedSize} @ ${order.requestedPrice}`);
@@ -114,7 +128,7 @@ export class ExecutorService {
 
       if (result.success) {
         // Update order status
-        await database.updateExecutionOrder(order.id, {
+        await db.updateExecutionOrder(order.id, {
           status: OrderStatus.EXECUTED,
           executedSize: result.executedSize,
           executedPrice: result.executedPrice,
@@ -138,7 +152,7 @@ export class ExecutorService {
 
       } else {
         // Mark as failed
-        await database.updateExecutionOrder(order.id, {
+        await db.updateExecutionOrder(order.id, {
           status: OrderStatus.FAILED,
           rejectionReason: result.error,
         });
@@ -149,7 +163,8 @@ export class ExecutorService {
     } catch (error) {
       logger.error(`Error executing order ${order.id}`, { error });
       
-      await database.updateExecutionOrder(order.id, {
+      const db = await this.getDatabase();
+      await db.updateExecutionOrder(order.id, {
         status: OrderStatus.FAILED,
         rejectionReason: error instanceof Error ? error.message : 'Unknown error',
       });
@@ -174,7 +189,8 @@ export class ExecutorService {
     rejected: number;
     pending: number;
   }> {
-    const orders = await database.getRecentExecutionOrders(1000);
+    const db = await this.getDatabase();
+    const orders = await db.getRecentExecutionOrders(1000);
 
     return {
       totalOrders: orders.length,

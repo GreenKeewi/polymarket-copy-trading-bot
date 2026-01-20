@@ -1,6 +1,6 @@
 import { Trade, TrackedTrader } from '../../types';
 import { config } from '../../config/ConfigManager';
-import { database } from '../../database/DatabaseManager';
+import { DatabaseFactory, IDatabaseAdapter } from '../../database/DatabaseFactory';
 import { logger } from '../../utils/logger';
 import { EventEmitter } from 'events';
 
@@ -18,6 +18,7 @@ export class MonitorService extends EventEmitter {
   private isRunning = false;
   private pollInterval: NodeJS.Timeout | null = null;
   private trackedTraders: TrackedTrader[] = [];
+  private database: IDatabaseAdapter | null = null;
 
   private constructor() {
     super();
@@ -28,6 +29,16 @@ export class MonitorService extends EventEmitter {
       MonitorService.instance = new MonitorService();
     }
     return MonitorService.instance;
+  }
+
+  /**
+   * Get the database adapter (lazy initialization)
+   */
+  private async getDatabase(): Promise<IDatabaseAdapter> {
+    if (!this.database) {
+      this.database = await DatabaseFactory.getConnectedDatabase();
+    }
+    return this.database;
   }
 
   /**
@@ -121,8 +132,10 @@ export class MonitorService extends EventEmitter {
    */
   async feedTrade(trade: Trade): Promise<void> {
     try {
+      const db = await this.getDatabase();
+      
       // Check if already processed
-      const isProcessed = await database.isTradeProcessed(trade.id);
+      const isProcessed = await db.isTradeProcessed(trade.id);
       if (isProcessed) {
         logger.debug(`Trade ${trade.id} already processed, skipping`);
         return;
@@ -136,7 +149,7 @@ export class MonitorService extends EventEmitter {
       }
 
       // Save to database
-      await database.saveTrade(trade);
+      await db.saveTrade(trade);
 
       // Emit event for processing
       this.emit('trade', trade, traderConfig);

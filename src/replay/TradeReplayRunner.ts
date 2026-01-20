@@ -25,10 +25,10 @@ export class TradeReplayRunner {
 
     try {
       const data = await fs.readFile(filePath, 'utf-8');
-      const parsed = JSON.parse(data);
+      const parsed = JSON.parse(data) as { trades?: unknown[] } | unknown[];
 
       // Support both array of trades and { trades: [...] } format
-      const tradesArray: unknown[] = Array.isArray(parsed) ? parsed : (parsed as { trades: unknown[] }).trades;
+      const tradesArray: unknown[] = Array.isArray(parsed) ? parsed : (parsed.trades || []);
 
       this.trades = tradesArray.map((t: unknown) => {
         const trade = t as Record<string, unknown>;

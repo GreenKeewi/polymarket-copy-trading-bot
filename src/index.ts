@@ -1,5 +1,5 @@
 import { config } from './config/ConfigManager';
-import { database } from './database/DatabaseManager';
+import { DatabaseFactory } from './database/DatabaseFactory';
 import { monitorService } from './services/monitor/MonitorService';
 import { executorService } from './services/executor/ExecutorService';
 import { ExecutorFactory } from './services/executor/ExecutorFactory';
@@ -34,9 +34,11 @@ export class PolymarketCopyBot {
         await this.sleep(5000);
       }
 
-      // Connect to database
+      // Connect to database (uses in-memory DB for test mode, MongoDB for live)
       logger.info('Connecting to database...');
-      await database.connect();
+      await DatabaseFactory.getConnectedDatabase();
+      const dbType = DatabaseFactory.isUsingInMemoryDatabase() ? 'In-Memory' : 'MongoDB';
+      logger.info(`Connected to ${dbType} database`);
 
       // Initialize executor
       logger.info('Initializing executor...');
@@ -95,7 +97,7 @@ export class PolymarketCopyBot {
     await ExecutorFactory.shutdown();
 
     // Disconnect database
-    await database.disconnect();
+    await DatabaseFactory.disconnect();
 
     logger.info('Bot stopped');
     process.exit(0);
