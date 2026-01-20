@@ -61,6 +61,8 @@ export class MonitorService extends EventEmitter {
       traders: this.trackedTraders.map(t => ({
         address: t.address,
         multiplier: t.multiplier,
+        capitalAmount: t.capitalAmount,
+        sizingMethod: t.capitalAmount ? 'capital-proportional' : 'multiplier-based',
       })),
     });
 

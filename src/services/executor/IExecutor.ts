@@ -33,6 +33,12 @@ export interface IExecutor {
   canExecute(order: ExecutionOrder): Promise<{ canExecute: boolean; reason?: string }>;
 
   /**
+   * Get available capital for position sizing
+   * Returns the total capital available for trading (cash + position values)
+   */
+  getAvailableCapital(): Promise<number>;
+
+  /**
    * Get executor type for safety checks
    */
   getType(): 'LIVE' | 'MOCK';

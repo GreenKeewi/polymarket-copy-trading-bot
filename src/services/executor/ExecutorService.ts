@@ -63,11 +63,28 @@ export class ExecutorService {
       }
 
       // Apply position sizing
-      const adjustedSize = riskEngine.calculateSafePositionSize(
-        trade.size,
-        traderConfig.multiplier,
-        trade.price
-      );
+      let adjustedSize: number;
+      
+      if (traderConfig.capitalAmount && traderConfig.capitalAmount > 0) {
+        // Use capital-proportional sizing
+        adjustedSize = await riskEngine.calculateCapitalProportionalSize(
+          trade.size,
+          trade.price,
+          traderConfig.capitalAmount,
+          trade.price
+        );
+        
+        logger.info(`Using capital-proportional sizing (trader capital: $${traderConfig.capitalAmount})`);
+      } else {
+        // Fall back to multiplier-based sizing
+        adjustedSize = riskEngine.calculateSafePositionSize(
+          trade.size,
+          traderConfig.multiplier,
+          trade.price
+        );
+        
+        logger.info(`Using multiplier-based sizing (multiplier: ${traderConfig.multiplier})`);
+      }
 
       if (adjustedSize === 0) {
         logger.info(`Trade ${trade.id} size too small after adjustments, skipping`);

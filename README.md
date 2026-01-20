@@ -16,7 +16,7 @@ This bot includes a **comprehensive testing mode** that:
 ## Features
 
 - 🎯 **Copy trades** from multiple Polymarket traders simultaneously
-- 📊 **Smart position sizing** with configurable multipliers
+- 📊 **Smart position sizing** with capital-proportional or multiplier-based methods
 - 🛡️ **Risk management**: Slippage protection, exposure limits, position caps
 - 🧪 **Comprehensive test mode** with mock wallet and price simulator
 - 📼 **Trade replay system** for testing historical scenarios
@@ -80,8 +80,14 @@ WALLET_PRIVATE_KEY=
 # Tracked traders (comma-separated addresses)
 TRACKED_TRADERS=0x1234567890123456789012345678901234567890
 
-# Position sizing (comma-separated multipliers)
+# Position sizing (choose ONE method):
+
+# Method 1: Multiplier-based (legacy)
 POSITION_MULTIPLIERS=1.0
+
+# Method 2: Capital-proportional (recommended)
+# Set the estimated capital/account size for each trader
+TRADER_CAPITAL_AMOUNTS=10000
 
 # Risk limits
 MAX_POSITION_SIZE_USD=1000
@@ -95,6 +101,89 @@ PRICE_SIMULATOR_VOLATILITY=0.02
 ENABLE_DETERMINISTIC_SEED=true
 DETERMINISTIC_SEED=42
 ```
+
+## Position Sizing Methods
+
+The bot supports two position sizing strategies. You can configure them per trader.
+
+### Method 1: Capital-Proportional (Recommended)
+
+Matches the **percentage of capital** the trader uses, not the absolute position size.
+
+**How it works:**
+- Trader has $10,000 capital, buys $1,000 worth → using 10% of capital
+- You have $2,000 capital, bot buys $200 worth → also using 10% of capital
+
+**Configuration:**
+```bash
+TRACKED_TRADERS=0xABC123
+TRADER_CAPITAL_AMOUNTS=10000
+```
+
+**Benefits:**
+- ✅ Scales naturally with your account size
+- ✅ More sophisticated risk management
+- ✅ Matches trader's conviction level
+- ✅ Works across different account sizes
+
+**Example:**
+```
+Trader (capital: $10,000):
+  - Buys 100 shares @ $10 = $1,000 (10% of capital)
+
+Your bot (capital: $5,000):
+  - Buys 50 shares @ $10 = $500 (10% of capital)
+  
+Same risk percentage, different absolute amounts.
+```
+
+### Method 2: Multiplier-Based (Legacy)
+
+Simply multiplies the trader's position size.
+
+**How it works:**
+- Trader buys 100 shares → You buy `100 × multiplier` shares
+
+**Configuration:**
+```bash
+TRACKED_TRADERS=0xABC123
+POSITION_MULTIPLIERS=0.5
+```
+
+**Example:**
+```
+Trader:
+  - Buys 100 shares @ $10 = $1,000
+
+Your bot (multiplier: 0.5):
+  - Buys 50 shares @ $10 = $500
+  
+Same proportion of shares, regardless of account sizes.
+```
+
+### Multiple Traders
+
+You can configure different sizing methods for different traders:
+
+```bash
+TRACKED_TRADERS=0xTrader1,0xTrader2,0xTrader3
+TRADER_CAPITAL_AMOUNTS=10000,,5000
+POSITION_MULTIPLIERS=1.0,0.5,1.0
+```
+
+In this example:
+- Trader1: Uses capital-proportional (capital: $10,000)
+- Trader2: Uses multiplier-based (0.5x)
+- Trader3: Uses capital-proportional (capital: $5,000)
+
+**Priority:** If `TRADER_CAPITAL_AMOUNTS` is set for a trader, it takes precedence over `POSITION_MULTIPLIERS`.
+
+### Learn More
+
+- 📖 [Quick Start Guide](docs/QUICK_START_CAPITAL_PROPORTIONAL.md) - Get started in 30 seconds
+- 📖 [Detailed Documentation](docs/CAPITAL_PROPORTIONAL_SIZING.md) - Full explanation with examples
+- 📖 [Implementation Details](docs/CAPITAL_PROPORTIONAL_IMPLEMENTATION.md) - Technical changes
+- 💻 Run comparison: `node examples/sizing-comparison.js`
 
 ## Test Mode (MANDATORY FIRST STEP)
 

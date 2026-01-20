@@ -160,6 +160,7 @@ export class RiskEngine {
 
   /**
    * Calculate safe position size based on multiplier and limits
+   * @deprecated Use calculateCapitalProportionalSize for capital-based sizing
    */
   calculateSafePositionSize(
     originalSize: number,
@@ -178,6 +179,58 @@ export class RiskEngine {
     // Ensure meets minimum trade size
     const minSizeByValue = botConfig.risk.minTradeSizeUSD / currentPrice;
     if (adjustedSize < minSizeByValue) {
+      return 0; // Trade too small, skip
+    }
+
+    return adjustedSize;
+  }
+
+  /**
+   * Calculate position size based on capital percentage
+   * Uses the same percentage of bot's capital as the trader used
+   */
+  async calculateCapitalProportionalSize(
+    tradeSize: number,
+    tradePrice: number,
+    traderCapital: number,
+    currentPrice: number
+  ): Promise<number> {
+    const botConfig = config.getConfig();
+    
+    // Get bot's available capital
+    const executor = await ExecutorFactory.getExecutor();
+    const botCapital = await executor.getAvailableCapital();
+    
+    if (botCapital <= 0) {
+      logger.warn('Bot has no available capital');
+      return 0;
+    }
+    
+    // Calculate trader's position as percentage of their capital
+    const tradeValue = tradeSize * tradePrice;
+    const traderPositionPercent = tradeValue / traderCapital;
+    
+    // Apply same percentage to bot's capital
+    const botPositionValue = botCapital * traderPositionPercent;
+    let adjustedSize = botPositionValue / currentPrice;
+    
+    logger.info(`Capital-proportional sizing:`, {
+      traderCapital,
+      tradeValue,
+      traderPercent: `${(traderPositionPercent * 100).toFixed(2)}%`,
+      botCapital,
+      botPositionValue,
+      calculatedSize: adjustedSize.toFixed(2),
+    });
+    
+    // Ensure doesn't exceed max position size
+    const maxSizeByValue = botConfig.risk.maxPositionSizeUSD / currentPrice;
+    adjustedSize = Math.min(adjustedSize, maxSizeByValue);
+    
+    // Ensure meets minimum trade size
+    const minSizeByValue = botConfig.risk.minTradeSizeUSD / currentPrice;
+    if (adjustedSize < minSizeByValue) {
+      logger.info(`Position size $${(adjustedSize * currentPrice).toFixed(2)} below minimum $${botConfig.risk.minTradeSizeUSD}`);
       return 0; // Trade too small, skip
     }
 

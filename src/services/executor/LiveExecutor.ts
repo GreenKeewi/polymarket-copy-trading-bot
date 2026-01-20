@@ -86,6 +86,17 @@ export class LiveExecutor implements IExecutor {
     throw new Error('LiveExecutor.getBalance not fully implemented');
   }
 
+  async getAvailableCapital(): Promise<number> {
+    LiveExecutionGuard.assertSafeToLoad();
+    
+    if (!this.initialized) {
+      throw new Error('LiveExecutor not initialized');
+    }
+
+    // TODO: Query real wallet balance + position values from blockchain
+    throw new Error('LiveExecutor.getAvailableCapital not fully implemented');
+  }
+
   async getPosition(_marketId: string, _outcomeId: string): Promise<{ quantity: number; averagePrice: number } | null> {
     LiveExecutionGuard.assertSafeToLoad();
     

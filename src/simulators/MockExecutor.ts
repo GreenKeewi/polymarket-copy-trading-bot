@@ -140,6 +140,18 @@ export class MockExecutor implements IExecutor {
     };
   }
 
+  async getAvailableCapital(): Promise<number> {
+    config.assertTestMode();
+    
+    if (!this.initialized) {
+      throw new Error('MockExecutor not initialized');
+    }
+
+    const balance = this.wallet.getBalance();
+    // Return total capital (cash + position values)
+    return balance.total;
+  }
+
   async getPosition(marketId: string, outcomeId: string): Promise<{ quantity: number; averagePrice: number } | null> {
     config.assertTestMode();
     

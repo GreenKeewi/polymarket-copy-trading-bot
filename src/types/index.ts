@@ -87,7 +87,8 @@ export interface WalletBalance {
 
 export interface TrackedTrader {
   address: string;
-  multiplier: number;
+  multiplier: number; // Deprecated: Use capitalAmount instead
+  capitalAmount?: number; // The trader's estimated account/capital size in USD
   active: boolean;
   lastSeenTrade?: Date;
 }

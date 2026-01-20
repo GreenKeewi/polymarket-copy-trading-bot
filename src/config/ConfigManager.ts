@@ -79,10 +79,12 @@ export class ConfigManager {
   private parseTrackedTraders(): TrackedTrader[] {
     const traders = process.env.TRACKED_TRADERS?.split(',').map(t => t.trim()).filter(Boolean) || [];
     const multipliers = process.env.POSITION_MULTIPLIERS?.split(',').map(m => parseFloat(m.trim())) || [];
+    const capitals = process.env.TRADER_CAPITAL_AMOUNTS?.split(',').map(c => parseFloat(c.trim())) || [];
 
     return traders.map((address, index) => ({
       address,
       multiplier: multipliers[index] || 1.0,
+      capitalAmount: capitals[index] || undefined,
       active: true,
     }));
   }
