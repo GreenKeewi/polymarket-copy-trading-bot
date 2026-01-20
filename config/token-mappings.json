@@ -1,0 +1,14 @@
+[
+  {
+    "marketId": "market_btc_100k",
+    "outcomeId": "outcome_yes",
+    "tokenId": "0x0000000000000000000000000000000000000000",
+    "description": "BTC reaches $100k - YES token"
+  },
+  {
+    "marketId": "market_btc_100k",
+    "outcomeId": "outcome_no",
+    "tokenId": "0x0000000000000000000000000000000000000001",
+    "description": "BTC reaches $100k - NO token"
+  }
+]
