@@ -3,7 +3,10 @@ import { config } from '../config/ConfigManager';
 
 const logLevel = process.env.LOG_LEVEL || 'info';
 
-// CRITICAL: Never log sensitive data
+/**
+ * CRITICAL: Redact sensitive data
+ * This format redacts any potential private keys or sensitive data
+ */
 const sanitizeFormat = winston.format((info) => {
   // Remove any potential private keys or sensitive data
   const sensitive = ['privateKey', 'private_key', 'secret', 'password', 'apiKey', 'api_key'];

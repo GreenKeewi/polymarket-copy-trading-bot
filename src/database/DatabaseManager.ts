@@ -8,6 +8,9 @@ import {
   TrackedTrader,
 } from '../types';
 
+// MongoDB error codes
+const MONGO_DUPLICATE_KEY_ERROR = 11000;
+
 /**
  * DatabaseManager - MongoDB adapter
  * Source of truth for all bot state
@@ -123,7 +126,7 @@ export class DatabaseManager {
       logger.info(`Trade saved: ${trade.id}`);
     } catch (error) {
       const mongoError = error as { code?: number };
-      if (mongoError.code === 11000) {
+      if (mongoError.code === MONGO_DUPLICATE_KEY_ERROR) {
         logger.warn(`Duplicate trade detected: ${trade.id}`);
       } else {
         logger.error('Failed to save trade', { error, trade });

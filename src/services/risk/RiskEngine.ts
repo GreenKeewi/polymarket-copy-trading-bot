@@ -140,8 +140,9 @@ export class RiskEngine {
     
     if (config.isTestMode()) {
       // Get from mock executor's price simulator
-      const mockExecutor = executor as any;
-      if (mockExecutor.getPriceSimulator) {
+      // Type guard to check if executor has getPriceSimulator method
+      const mockExecutor = executor as { getPriceSimulator?: () => { getPrice: (marketId: string, outcomeId: string) => number } };
+      if (mockExecutor.getPriceSimulator && typeof mockExecutor.getPriceSimulator === 'function') {
         currentPrice = mockExecutor.getPriceSimulator().getPrice(order.marketId, order.outcomeId);
       } else {
         currentPrice = order.requestedPrice; // Fallback

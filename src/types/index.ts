@@ -159,7 +159,7 @@ export interface BotConfig {
 
 export interface TradeReplayConfig {
   filePath: string;
-  speed: number; // 1x, 5x, etc. 0 = instant
+  speed: number; // 1x, 5x, etc. or 0 for instant replay
   startIndex?: number;
   endIndex?: number;
 }
