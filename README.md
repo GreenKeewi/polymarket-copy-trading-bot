@@ -1,391 +1,234 @@
 # Polymarket Copy Trading Bot
 
-A production-grade copy-trading bot for Polymarket with **mandatory testing mode** to validate the entire pipeline without risking real money.
+A production-grade automated trading bot that copies trades from successful Polymarket traders. Built with TypeScript, featuring comprehensive test mode, intelligent position sizing, and robust risk management.
 
-## 🔒 Safety First
+## 🌟 Features
 
-This bot includes a **comprehensive testing mode** that:
-- ✅ Simulates all trading operations
-- ✅ Uses mock wallet with fake balance
-- ✅ Prevents accidental live execution
-- ✅ Validates position math and risk rules
-- ✅ Tests edge cases before going live
+- **Smart Copy Trading**: Automatically mirror trades from multiple Polymarket traders
+- **Capital-Proportional Sizing**: Matches trader's risk percentage, not absolute position size
+- **Risk Management**: Position limits, exposure caps, slippage protection
+- **Test Mode**: Full simulation with mock wallet before risking real money
+- **Real-time Monitoring**: CLI dashboard showing positions, PnL, and activity
+- **MongoDB Persistence**: Reliable state management and trade history
 
-**CRITICAL**: Never run in live mode without thoroughly testing first.
+## 🚀 Quick Start
 
-## Features
+### Prerequisites
 
-- 🎯 **Copy trades** from multiple Polymarket traders simultaneously
-- 📊 **Smart position sizing** with capital-proportional or multiplier-based methods
-- 🛡️ **Risk management**: Slippage protection, exposure limits, position caps
-- 🧪 **Comprehensive test mode** with mock wallet and price simulator
-- 📼 **Trade replay system** for testing historical scenarios
-- 📈 **CLI dashboard** with real-time monitoring
-- 💾 **MongoDB persistence** as source of truth
-- 🔐 **Security**: Private keys never logged, test mode isolation
+- Node.js 16+
+- MongoDB (optional, uses in-memory DB in test mode)
+- Polygon wallet with USDC (for live trading)
 
-## Architecture
-
-```
-/src
-  /config          # Configuration management
-  /services        
-    /monitor       # Trade detection
-    /executor      # Execution engine (Live + Mock)
-    /position      # Position manager
-    /risk          # Risk engine
-  /database        # MongoDB layer
-  /simulators      # MockWalletEngine, PriceSimulator
-  /cli             # CLI dashboard
-  /replay          # Trade replay system
-  /types           # TypeScript interfaces
-```
-
-### Key Components
-
-- **MockWalletEngine**: Simulates trading with fake balance
-- **PriceSimulator**: Generates market prices with controlled randomness
-- **LiveExecutionGuard**: Prevents live execution in test mode (CRITICAL SAFETY)
-- **ExecutorFactory**: Safely instantiates Live or Mock executor
-- **TradeReplayRunner**: Replays historical trades for testing
-
-## Installation
+### Installation
 
 ```bash
+# Clone repository
+git clone https://github.com/yourusername/polymarket-copy-trading-bot
+cd polymarket-copy-trading-bot
+
 # Install dependencies
 npm install
 
-# Copy environment example
+# Copy environment file
 cp .env.example .env
 
-# Edit .env and configure
+# Edit configuration
 nano .env
 ```
 
-## Configuration
+### Configuration
 
-Edit `.env`:
+Edit `.env` file:
 
 ```bash
-# CRITICAL: Enable test mode first
+# CRITICAL: Always start with test mode
 TEST_MODE=true
 
-# MongoDB (or use in-memory for testing)
-MONGODB_URI=mongodb://localhost:27017
-MONGODB_DATABASE=polymarket_copy_bot
-
-# Wallet (ONLY set for live mode)
-WALLET_PRIVATE_KEY=
-
-# Tracked traders (comma-separated addresses)
+# Tracked traders (Polygon addresses)
 TRACKED_TRADERS=0x1234567890123456789012345678901234567890
 
-# Position sizing (choose ONE method):
-
-# Method 1: Multiplier-based (legacy)
-POSITION_MULTIPLIERS=1.0
-
-# Method 2: Capital-proportional (recommended)
-# Set the estimated capital/account size for each trader
+# Position sizing - choose ONE method:
+# Method 1: Capital-proportional (recommended) - matches trader's % of capital
 TRADER_CAPITAL_AMOUNTS=10000
+
+# Method 2: Multiplier-based - simple multiplier of trader's position
+POSITION_MULTIPLIERS=1.0
 
 # Risk limits
 MAX_POSITION_SIZE_USD=1000
 MAX_TOTAL_EXPOSURE_USD=5000
-DEFAULT_SLIPPAGE_TOLERANCE=0.02
 MIN_TRADE_SIZE_USD=10
+DEFAULT_SLIPPAGE_TOLERANCE=0.02
 
 # Test mode settings
 MOCK_WALLET_INITIAL_BALANCE=1000
-PRICE_SIMULATOR_VOLATILITY=0.02
-ENABLE_DETERMINISTIC_SEED=true
-DETERMINISTIC_SEED=42
 ```
 
-## Position Sizing Methods
+### Test the Bot
 
-The bot supports two position sizing strategies. You can configure them per trader.
-
-### Method 1: Capital-Proportional (Recommended)
-
-Matches the **percentage of capital** the trader uses, not the absolute position size.
-
-**How it works:**
-- Trader has $10,000 capital, buys $1,000 worth → using 10% of capital
-- You have $2,000 capital, bot buys $200 worth → also using 10% of capital
-
-**Configuration:**
 ```bash
-TRACKED_TRADERS=0xABC123
+# Build and test
+npm run test-bot
+```
+
+Expected output shows successful test execution with mock trades and validated balances.
+
+## 📊 Position Sizing Methods
+
+### Capital-Proportional (Recommended)
+
+Matches the **percentage of capital** the trader uses:
+
+```bash
 TRADER_CAPITAL_AMOUNTS=10000
 ```
 
-**Benefits:**
-- ✅ Scales naturally with your account size
-- ✅ More sophisticated risk management
-- ✅ Matches trader's conviction level
-- ✅ Works across different account sizes
-
 **Example:**
-```
-Trader (capital: $10,000):
-  - Buys 100 shares @ $10 = $1,000 (10% of capital)
+- Trader has $10,000 capital, buys $1,000 worth (10% of capital)
+- You have $2,000 capital, bot buys $200 worth (10% of capital)
+- **Same risk level, different absolute amounts**
 
-Your bot (capital: $5,000):
-  - Buys 50 shares @ $10 = $500 (10% of capital)
-  
-Same risk percentage, different absolute amounts.
-```
+### Multiplier-Based
 
-### Method 2: Multiplier-Based (Legacy)
+Simple multiplier of trader's position size:
 
-Simply multiplies the trader's position size.
-
-**How it works:**
-- Trader buys 100 shares → You buy `100 × multiplier` shares
-
-**Configuration:**
 ```bash
-TRACKED_TRADERS=0xABC123
 POSITION_MULTIPLIERS=0.5
 ```
 
 **Example:**
-```
-Trader:
-  - Buys 100 shares @ $10 = $1,000
+- Trader buys 100 shares
+- You buy 50 shares (100 × 0.5)
 
-Your bot (multiplier: 0.5):
-  - Buys 50 shares @ $10 = $500
-  
-Same proportion of shares, regardless of account sizes.
-```
+## 🔧 Live Trading Setup
 
-### Multiple Traders
+⚠️ **Only proceed after thorough testing!**
 
-You can configure different sizing methods for different traders:
+### Step 1: Install Polymarket Dependencies
 
 ```bash
-TRACKED_TRADERS=0xTrader1,0xTrader2,0xTrader3
-TRADER_CAPITAL_AMOUNTS=10000,,5000
-POSITION_MULTIPLIERS=1.0,0.5,1.0
+npm install @polymarket/clob-client ethers@^5.7.0 axios
 ```
 
-In this example:
-- Trader1: Uses capital-proportional (capital: $10,000)
-- Trader2: Uses multiplier-based (0.5x)
-- Trader3: Uses capital-proportional (capital: $5,000)
+### Step 2: Implement PolymarketClient
 
-**Priority:** If `TRADER_CAPITAL_AMOUNTS` is set for a trader, it takes precedence over `POSITION_MULTIPLIERS`.
+Edit `src/services/polymarket/PolymarketClient.ts`:
+- Uncomment the import statements
+- Uncomment implementation code
+- Remove `throw new Error(...)` placeholders
 
-### Learn More
+### Step 3: Configure Token Mappings
 
-- 📖 [Quick Start Guide](docs/QUICK_START_CAPITAL_PROPORTIONAL.md) - Get started in 30 seconds
-- 📖 [Detailed Documentation](docs/CAPITAL_PROPORTIONAL_SIZING.md) - Full explanation with examples
-- 📖 [Implementation Details](docs/CAPITAL_PROPORTIONAL_IMPLEMENTATION.md) - Technical changes
-- 💻 Run comparison: `node examples/sizing-comparison.js`
-
-## Test Mode (MANDATORY FIRST STEP)
-
-### Quick Test
-
-```bash
-# Build and run end-to-end test
-npm run test-bot
-```
-
-This will:
-1. ✅ Verify TEST_MODE is enabled
-2. ✅ Initialize mock wallet with fake balance
-3. ✅ Load sample trades from fixtures
-4. ✅ Execute through full pipeline
-5. ✅ Validate position math, balances, and risk rules
-6. ✅ Display results
-
-**Expected output:**
-
-```
-═══════════════════════════════════════════════════
-  Polymarket Copy Trading Bot - Test Mode
-═══════════════════════════════════════════════════
-
-✅ TEST_MODE confirmed
-✅ Mock executor initialized with $1000
-✅ Loaded 5 trades
-▶️  Replaying trades through pipeline...
-✅ Replay completed
-
-🔍 VALIDATION RESULTS
-
-✅ Confirmed: No real trades executed
-✅ Trades processed successfully
-✅ Position math correct
-✅ Balance consistent
-
-📊 FINAL STATE
-
-Initial Balance: $1000.00
-Final Balance: $1023.45
-Total PnL: +$23.45
-Total Trades: 10
-Open Positions: 3
-
-═══════════════════════════════════════════════════
-  ✅ ALL TESTS PASSED
-═══════════════════════════════════════════════════
-```
-
-### Manual Test Mode
-
-```bash
-# Build
-npm run build
-
-# Run in test mode
-npm run start:test
-
-# Or with flags
-TEST_MODE=true npm start
-# Or
-npm start -- --test
-```
-
-The bot will:
-- Display clear **"TEST MODE"** banner
-- Use simulated wallet (no real money)
-- Show simulated balances and PnL
-- Execute mock trades only
-
-### Trade Replay
-
-Test with historical trades:
-
-```bash
-# Replay trades from JSON file
-npm run replay -- tests/fixtures/sample-trades.json
-
-# With speed control (5x speed)
-npm run replay -- tests/fixtures/sample-trades.json 5x
-
-# Instant replay
-npm run replay -- tests/fixtures/sample-trades.json 0
-```
-
-### Creating Test Fixtures
-
-Create a JSON file with trades:
+Create `config/token-mappings.json`:
 
 ```json
-{
-  "trades": [
-    {
-      "id": "trade_001",
-      "traderAddress": "0x...",
-      "marketId": "market_btc_100k",
-      "outcomeId": "outcome_yes",
-      "side": "BUY",
-      "size": 100,
-      "price": 0.65,
-      "timestamp": "2024-01-20T10:00:00.000Z"
-    }
-  ]
-}
+[
+  {
+    "marketId": "your-market-id",
+    "outcomeId": "outcome_yes",
+    "tokenId": "0x...actual-polymarket-token-id",
+    "description": "Market description"
+  }
+]
 ```
 
-See `tests/fixtures/` for examples.
+Find token IDs at https://polymarket.com or via their API.
 
-## Going Live (Use with EXTREME Caution)
+### Step 4: Fund Wallet
 
-⚠️ **WARNING**: Only proceed after comprehensive testing!
+- Send USDC to your Polygon wallet (not Ethereum mainnet!)
+- Send MATIC for gas fees
+- Start with small amounts ($50-100)
 
-### Pre-Live Checklist
+### Step 5: Go Live
 
-- [ ] Run `npm run test-bot` successfully
-- [ ] Test with sample trades
-- [ ] Test with edge cases
-- [ ] Validate position sizing
-- [ ] Verify risk limits are appropriate
-- [ ] Start with small multipliers (0.1x)
-- [ ] Have an emergency stop plan
-
-### Steps to Go Live
-
-1. **Set environment variables:**
+Update `.env`:
 
 ```bash
 TEST_MODE=false
-WALLET_PRIVATE_KEY=your_actual_private_key
+WALLET_PRIVATE_KEY=0x...your-private-key...
+
+# Start with conservative limits
+MAX_POSITION_SIZE_USD=50
+MAX_TOTAL_EXPOSURE_USD=200
 ```
 
-2. **Remove test flags from scripts**
-
-3. **Start with monitoring only** (implement dry-run-like behavior first)
-
-4. **Start small:**
-   - Use low multipliers (0.1x)
-   - Set conservative risk limits
-   - Monitor constantly
-
-5. **Run:**
+### Step 6: Run Bot
 
 ```bash
 npm start
 ```
 
-The bot will show:
-```
-═══════════════════════════════════════════════════
-   🔴 LIVE MODE - USING REAL MONEY
-═══════════════════════════════════════════════════
-```
+Monitor closely for the first 24-48 hours.
 
-## Dashboard
+## 📖 Documentation
 
-The CLI dashboard shows:
-- Current mode (TEST/LIVE) - prominently displayed
-- Balance (Available, Total, PnL)
-- Open positions
-- Execution statistics
-- Real-time updates
+- **[Implementation Guide](docs/LIVE_IMPLEMENTATION_GUIDE.md)** - Detailed setup for live trading
+- **[Implementation Checklist](docs/IMPLEMENTATION_CHECKLIST.md)** - Step-by-step checklist
+- **[Test Mode Architecture](docs/TEST_MODE_ARCHITECTURE.md)** - How test mode works
 
-In test mode:
-```
-🧪 TEST MODE - NO REAL TRADES EXECUTED
-
-💰 Balance
-  [SIMULATED] Available Balance: $987.50
-  [SIMULATED] Total Balance: $1023.45
-  [SIMULATED] Total PnL: +$23.45
-```
-
-## Safety Guarantees
+## 🛡️ Safety Features
 
 ### Test Mode Protection
 
-If `TEST_MODE=true`:
-- ❌ LiveExecutor **CANNOT** be imported (fatal error)
-- ❌ Private key is **IGNORED**
+When `TEST_MODE=true`:
 - ❌ No real blockchain transactions
-- ✅ All operations use MockExecutor
-- ✅ LiveExecutionGuard enforces isolation
+- ❌ Private keys ignored
+- ✅ All operations simulated
+- ✅ MockExecutor enforces isolation
 
-### Code Structure
+### Risk Management
 
-```typescript
-// CRITICAL SAFETY: This throws error in test mode
-import { LiveExecutor } from './services/executor/LiveExecutor'; // FATAL if TEST_MODE=true
+- Position size limits
+- Total exposure caps
+- Slippage protection
+- Minimum trade size enforcement
+- Emergency stop mechanism
 
-// SAFE: Factory selects executor based on mode
-const executor = await ExecutorFactory.getExecutor(); // Returns Mock or Live
+### Emergency Stop
+
+Create stop file to halt bot immediately:
+
+```bash
+touch /tmp/polymarket_bot_stop
 ```
 
-### Idempotency
+Or kill the process:
 
-- Trades are deduplicated by ID
-- Position updates are atomic
-- Failed executions can be retried safely
+```bash
+pkill -f "node.*polymarket"
+```
 
-## Development
+## 📁 Project Structure
+
+```
+polymarket-copy-trading-bot/
+├── src/
+│   ├── config/              # Configuration management
+│   ├── services/
+│   │   ├── executor/        # Trade execution (Live + Mock)
+│   │   ├── monitor/         # Trade detection
+│   │   ├── position/        # Position tracking
+│   │   ├── risk/            # Risk management
+│   │   └── polymarket/      # Polymarket API integration
+│   ├── database/            # MongoDB/In-memory adapters
+│   ├── simulators/          # Mock wallet & price simulator
+│   ├── cli/                 # Dashboard UI
+│   └── types/               # TypeScript types
+├── tests/fixtures/          # Sample trades for testing
+├── config/                  # Token mappings
+├── docs/                    # Documentation
+└── scripts/                 # Setup scripts
+```
+
+## 🔐 Security
+
+- **Private keys never logged** - Secure handling throughout
+- **Test mode isolation** - Prevents accidental live execution
+- **Environment separation** - Clear distinction between test/live
+- **MongoDB security** - Connection string in environment variables
+
+## ⚙️ Development
 
 ```bash
 # Install dependencies
@@ -394,153 +237,75 @@ npm install
 # Build
 npm run build
 
-# Run tests
+# Test
 npm run test-bot
 
 # Lint
 npm run lint
 
-# Fix linting issues
-npm run lint:fix
-
-# Development mode (with hot reload)
-npm run dev:test
+# Development mode
+npm run dev
 ```
 
-## Project Structure
+## 🐛 Troubleshooting
 
-```
-polymarket-copy-trading-bot/
-├── src/
-│   ├── config/           # Configuration management
-│   ├── services/
-│   │   ├── monitor/      # Trade detection
-│   │   ├── executor/     # Execution (Live + Mock)
-│   │   ├── position/     # Position tracking
-│   │   └── risk/         # Risk management
-│   ├── database/         # MongoDB adapter
-│   ├── simulators/       # MockWallet, PriceSimulator
-│   ├── cli/              # Dashboard
-│   ├── replay/           # Trade replay
-│   ├── types/            # TypeScript types
-│   ├── utils/            # Logger, helpers
-│   └── index.ts          # Main entry
-├── tests/
-│   ├── fixtures/         # Sample trades
-│   ├── replay/           # Replay scenarios
-│   └── edge-cases/       # Edge case tests
-├── package.json
-├── tsconfig.json
-├── .env.example
-└── README.md
-```
+### "Chain ID mismatch"
+- Verify using Polygon (Chain ID: 137), not Ethereum (Chain ID: 1)
 
-## Risk Management
+### "Insufficient funds" with balance
+- Ensure USDC is on Polygon network
+- Check contract allowances for Polymarket
 
-The bot enforces:
+### Orders not executing
+- Verify market liquidity in order book
+- Check slippage tolerance settings
+- Review error logs in `logs/` directory
 
-1. **Position Size Limits**: Max USD per position
-2. **Total Exposure Limits**: Max total USD across all positions
-3. **Slippage Protection**: Reject trades with excessive slippage
-4. **Minimum Trade Size**: Ignore tiny trades
-5. **Balance Checks**: Prevent overdraft
-6. **Position Validation**: Prevent short selling without position
+### Trader detection not working
+- Verify trader addresses are correct (Polygon addresses)
+- Check API rate limits
+- Review MonitorService logs
 
-Configure in `.env`:
-```bash
-MAX_POSITION_SIZE_USD=1000
-MAX_TOTAL_EXPOSURE_USD=5000
-DEFAULT_SLIPPAGE_TOLERANCE=0.02  # 2%
-MIN_TRADE_SIZE_USD=10
-```
+## 📊 Monitoring
 
-## Edge Cases Tested
+The CLI dashboard shows:
+- Current mode (TEST/LIVE)
+- Balance and PnL
+- Open positions
+- Recent trades
+- Execution statistics
 
-The test system includes scenarios for:
+In test mode, all displays are clearly marked as `[SIMULATED]`.
 
-- ✅ Rapid trade bursts (multiple trades in milliseconds)
-- ✅ Partial position sells
-- ✅ Market price jumps
-- ✅ Slippage rejection
-- ✅ Insufficient balance
-- ✅ Insufficient position
-- ✅ Duplicate trade detection
-- ✅ MongoDB reconnection
-- ✅ Bot restart mid-execution
+## 🤝 Contributing
 
-## Logging
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Test thoroughly in TEST_MODE
+4. Submit a pull request
 
-Logs are written to:
-- Console (colored, formatted)
-- `logs/combined.log` (all logs)
-- `logs/error.log` (errors only)
+## ⚠️ Disclaimer
 
-**CRITICAL**: Private keys are **NEVER** logged (sanitized by logger)
+**This software is for educational purposes. Trading involves risk of loss. Users are responsible for:**
+- Understanding the code before using it
+- Testing thoroughly before live trading
+- Managing their own risk
+- Securing their private keys
+- Complying with all applicable laws
 
-## MongoDB Schema
+**No warranty provided. Use at your own risk.**
 
-### Collections
+## 📝 License
 
-- **trades**: Detected trades from tracked traders
-- **executionOrders**: Our execution orders
-- **positions**: Current positions per market/outcome
-- **trackedTraders**: Configuration for tracked traders
+MIT License - See LICENSE file for details
 
-## Troubleshooting
+## 🔗 Resources
 
-### "LiveExecutor cannot be loaded in TEST_MODE"
-
-✅ This is **correct behavior**. It means the safety guard is working.
-
-### Trades not being detected
-
-1. Check `TRACKED_TRADERS` in `.env`
-2. Verify monitor service is running
-3. Check logs for errors
-
-### Test bot fails
-
-1. Ensure MongoDB is running (or use in-memory)
-2. Check TEST_MODE=true
-3. Review logs for specific error
-
-### Position math doesn't match
-
-1. Check for duplicate trade processing
-2. Verify price simulator is initialized
-3. Review position update logic
-
-## Future Enhancements
-
-- [ ] Real Polymarket API integration
-- [ ] GraphQL subscription for real-time trades
-- [ ] Advanced aggregation strategies
-- [ ] Portfolio optimization
-- [ ] Backtesting framework
-- [ ] Web dashboard
-- [ ] Telegram notifications
-- [ ] Multi-chain support
-
-## License
-
-MIT
-
-## Disclaimer
-
-**⚠️ USE AT YOUR OWN RISK**
-
-This software is provided for educational purposes. Trading involves substantial risk of loss. The authors are not responsible for any financial losses incurred through use of this software.
-
-**ALWAYS** test thoroughly in test mode before risking real capital.
-
-## Support
-
-For issues or questions:
-1. Check logs first
-2. Review this README
-3. Test in test mode
-4. Open an issue with full logs and configuration (redact private keys!)
+- [Polymarket](https://polymarket.com)
+- [Polymarket API Docs](https://docs.polymarket.com)
+- [Polygon Network](https://polygon.technology)
 
 ---
 
-Built with ❤️ and an obsession with safety.
+**Start with test mode. Monitor constantly. Scale gradually.**
