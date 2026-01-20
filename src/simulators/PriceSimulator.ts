@@ -150,12 +150,24 @@ export class PriceSimulator {
   /**
    * Seeded random number generator for deterministic testing
    * Uses simple LCG (Linear Congruential Generator)
+   * 
+   * Parameters are from Numerical Recipes (MINSTD variant):
+   * - Multiplier (a): 1664525 - chosen to provide good spectral properties
+   * - Increment (c): 1013904223 - must be odd when modulus is power of 2
+   * - Modulus (m): 4294967296 (2^32) - fits in 32-bit arithmetic
+   * 
+   * These constants are well-studied and provide adequate randomness
+   * for simulation purposes with full period (2^32 values before repeating).
    */
   private seededRandom(seed: number): () => number {
+    const LCG_MULTIPLIER = 1664525;
+    const LCG_INCREMENT = 1013904223;
+    const LCG_MODULUS = 4294967296; // 2^32
+    
     let state = seed;
     return (): number => {
-      state = (state * 1664525 + 1013904223) % 4294967296;
-      return state / 4294967296;
+      state = (state * LCG_MULTIPLIER + LCG_INCREMENT) % LCG_MODULUS;
+      return state / LCG_MODULUS;
     };
   }
 

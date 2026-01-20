@@ -133,24 +133,8 @@ export class RiskEngine {
     const botConfig = config.getConfig();
     const executor = await ExecutorFactory.getExecutor();
 
-    // Get current market price
-    // In test mode, this uses price simulator
-    // In live mode, this would query Polymarket API
-    let currentPrice: number;
-    
-    if (config.isTestMode()) {
-      // Get from mock executor's price simulator
-      // Type guard to check if executor has getPriceSimulator method
-      const mockExecutor = executor as { getPriceSimulator?: () => { getPrice: (marketId: string, outcomeId: string) => number } };
-      if (mockExecutor.getPriceSimulator && typeof mockExecutor.getPriceSimulator === 'function') {
-        currentPrice = mockExecutor.getPriceSimulator().getPrice(order.marketId, order.outcomeId);
-      } else {
-        currentPrice = order.requestedPrice; // Fallback
-      }
-    } else {
-      // In live mode, would fetch from Polymarket API
-      currentPrice = order.requestedPrice; // Placeholder
-    }
+    // Get current market price from the executor
+    const currentPrice = await executor.getCurrentPrice(order.marketId, order.outcomeId);
 
     const slippagePercent = Math.abs(currentPrice - order.requestedPrice) / order.requestedPrice;
 

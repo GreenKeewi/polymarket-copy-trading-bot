@@ -23,7 +23,10 @@ export class ConfigManager {
     const testMode = this.checkTestMode();
 
     // CRITICAL: Prevent loading private key in test mode
+    // Note: Using console.warn here because logger depends on ConfigManager (circular dependency)
+    // This message intentionally does not include any sensitive data
     if (testMode && process.env.WALLET_PRIVATE_KEY) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️  WARNING: WALLET_PRIVATE_KEY is set but TEST_MODE is enabled. Private key will be IGNORED.');
     }
 

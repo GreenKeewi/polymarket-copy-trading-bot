@@ -188,6 +188,19 @@ export class MockExecutor implements IExecutor {
     return { canExecute: true };
   }
 
+  /**
+   * Get current market price from price simulator
+   */
+  async getCurrentPrice(marketId: string, outcomeId: string): Promise<number> {
+    config.assertTestMode();
+    
+    if (!this.initialized) {
+      throw new Error('MockExecutor not initialized');
+    }
+
+    return this.priceSimulator.getPrice(marketId, outcomeId);
+  }
+
   getType(): 'LIVE' | 'MOCK' {
     return 'MOCK';
   }

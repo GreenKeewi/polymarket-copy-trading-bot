@@ -108,6 +108,17 @@ export class LiveExecutor implements IExecutor {
     return { canExecute: true };
   }
 
+  async getCurrentPrice(_marketId: string, _outcomeId: string): Promise<number> {
+    LiveExecutionGuard.assertSafeToLoad();
+    
+    if (!this.initialized) {
+      throw new Error('LiveExecutor not initialized');
+    }
+
+    // TODO: Query real-time prices from Polymarket API
+    throw new Error('LiveExecutor.getCurrentPrice not fully implemented');
+  }
+
   getType(): 'LIVE' | 'MOCK' {
     return 'LIVE';
   }

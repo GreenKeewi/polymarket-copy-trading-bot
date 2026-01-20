@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { Trade, ExecutionOrder, OrderStatus, TrackedTrader } from '../../types';
 import { ExecutorFactory } from './ExecutorFactory';
 import { riskEngine } from '../risk/RiskEngine';
@@ -172,11 +173,10 @@ export class ExecutorService {
   }
 
   /**
-   * Generate unique order ID
+   * Generate unique order ID using crypto.randomUUID for collision-resistant IDs
    */
   private generateOrderId(): string {
-    // Using crypto.randomUUID equivalent
-    return `order_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    return `order_${crypto.randomUUID()}`;
   }
 
   /**

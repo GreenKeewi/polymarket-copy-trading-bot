@@ -6,13 +6,14 @@ import {
   Position,
   TrackedTrader,
 } from '../types';
+import { IDatabaseAdapter } from './IDatabaseAdapter';
 
 /**
  * InMemoryDatabaseManager - In-memory database adapter for test mode
  * Provides the same interface as DatabaseManager but stores data in memory
  * No MongoDB required
  */
-export class InMemoryDatabaseManager {
+export class InMemoryDatabaseManager implements IDatabaseAdapter {
   private static instance: InMemoryDatabaseManager;
   
   private trades: Map<string, Trade> = new Map();

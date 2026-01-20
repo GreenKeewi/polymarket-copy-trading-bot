@@ -21,6 +21,13 @@ export interface IExecutor {
   getPosition(marketId: string, outcomeId: string): Promise<{ quantity: number; averagePrice: number } | null>;
 
   /**
+   * Get current market price for a specific market/outcome
+   * In test mode, returns simulated price
+   * In live mode, would query Polymarket API
+   */
+  getCurrentPrice(marketId: string, outcomeId: string): Promise<number>;
+
+  /**
    * Validate if an order can be executed (pre-flight check)
    */
   canExecute(order: ExecutionOrder): Promise<{ canExecute: boolean; reason?: string }>;
